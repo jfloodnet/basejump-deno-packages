@@ -45,5 +45,7 @@ export default async function getBillingStatus(
     is_primary_owner: roleInfo.is_primary_owner,
     billing_enabled: roleInfo.billing_enabled,
     metadata: billingData?.subscription?.metadata,
+    raw_data: billingData,
+    raw_upsert_data: data,
   };
 }
