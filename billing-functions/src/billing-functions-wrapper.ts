@@ -96,7 +96,7 @@ export function billingFunctionsWrapper(
         }
         const body = await req.json();
 
-        if (!body.args?.account_id) {
+        if (body.action !== "get_plans" && !body.args?.account_id) {
             return errorResponse("Account id is required");
         }
         try {
