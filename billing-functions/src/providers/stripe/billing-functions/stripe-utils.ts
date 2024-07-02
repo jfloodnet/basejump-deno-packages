@@ -23,10 +23,10 @@ export function stripeSubscriptionToBasejumpSubscription(
 ): BASEJUMP_BILLING_DATA_UPSERT["subscription"] {
   return {
     id: subscription.id,
-    plan_name: subscription.plan_name,
+    plan_name: subscription.items.data[0].plan.nickname,
     account_id: accountId,
     billing_customer_id: subscription.customer,
-    metadata: subscription.metadata,
+    metadata: subscription.items.data[0].plan.metadata,
     status: subscription.status,
     price_id: subscription.items.data[0].price.id,
     quantity: subscription.items.data[0].quantity,
