@@ -12,6 +12,7 @@ export default async function getPlans(stripeClient) {
       id: price.id,
       interval:
         price.type === "one_time" ? "one_time" : price.recurring?.interval,
+      metadata: price.metadata
     };
   });
 }
