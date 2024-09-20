@@ -1,4 +1,4 @@
-import {SupabaseClient} from "@supabase/supabase-js";
+import {SupabaseClient} from "jsr:@supabase/supabase-js@2";
 import {AUTHORIZED_BILLING_USER_INFO} from "../require-authorized-billing-user.ts";
 import {BILLING_FUNCTION_WRAPPER_HANDLERS, GET_BILLING_STATUS_RESPONSE,} from "../billing-functions-wrapper.ts";
 import {upsertCustomerSubscription} from "../../lib/upsert-data.ts";
