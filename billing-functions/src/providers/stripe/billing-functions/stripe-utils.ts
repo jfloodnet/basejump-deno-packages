@@ -7,7 +7,7 @@ function unixToIso(unixTime: number) {
 
 export function stripeCustomerToBasejumpCustomer(
   accountId: string,
-  stripeCustomer: Stripe.Customer
+  stripeCustomer: Stripe.Customer,
 ): BASEJUMP_BILLING_DATA_UPSERT["customer"] {
   return {
     id: stripeCustomer.id,
@@ -19,13 +19,14 @@ export function stripeCustomerToBasejumpCustomer(
 
 export function stripeSubscriptionToBasejumpSubscription(
   accountId: string,
-  subscription: Stripe.Subscription
+  subscription: Stripe.Subscription,
 ): BASEJUMP_BILLING_DATA_UPSERT["subscription"] {
   return {
     id: subscription.id,
+    plan_name: subscription.items.data[0].plan.nickname,
     account_id: accountId,
     billing_customer_id: subscription.customer,
-    metadata: subscription.metadata,
+    metadata: subscription.items.data[0].plan.metadata,
     status: subscription.status,
     price_id: subscription.items.data[0].price.id,
     quantity: subscription.items.data[0].quantity,
@@ -37,7 +38,7 @@ export function stripeSubscriptionToBasejumpSubscription(
       ? unixToIso(subscription.canceled_at)
       : null,
     current_period_start: new Date(
-      subscription.current_period_start
+      subscription.current_period_start,
     ).toISOString(),
     current_period_end: unixToIso(subscription.current_period_end),
     created: unixToIso(subscription.created),
