@@ -1,8 +1,12 @@
+import Stripe from "stripe";
+
 export default async function getPlans(stripeClient) {
   const prices = await stripeClient.prices.list({
     expand: ["data.product"],
     active: true,
   });
+
+  console.log("Stripe prices response:", JSON.stringify(prices, null, 2));
 
   return prices?.data?.map((price: Stripe.Price) => {
     return {
@@ -13,7 +17,7 @@ export default async function getPlans(stripeClient) {
       id: price.id,
       interval:
         price.type === "one_time" ? "one_time" : price.recurring?.interval,
-      metadata: price.metadata
+      marketing_features: (price.product as Stripe.Product).metadata?.marketing_features || [],
     };
   });
 }
