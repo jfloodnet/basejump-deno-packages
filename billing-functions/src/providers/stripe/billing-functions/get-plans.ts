@@ -6,9 +6,7 @@ export default async function getPlans(stripeClient) {
       expand: ["data.product"],
       active: true,
     }),
-    stripeClient.coupons.list({
-      active: true,
-    })
+    stripeClient.coupons.list()
   ]);
 
   console.log("Stripe prices response:", JSON.stringify(prices, null, 2));
