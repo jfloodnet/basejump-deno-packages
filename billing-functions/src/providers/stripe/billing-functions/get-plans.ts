@@ -17,7 +17,7 @@ export default async function getPlans(stripeClient) {
       id: price.id,
       interval:
         price.type === "one_time" ? "one_time" : price.recurring?.interval,
-      marketing_features: (price.product as Stripe.Product).metadata?.marketing_features || [],
+      features: (price.product as Stripe.Product).marketing_features || [],
     };
   });
 }
