@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import type { Stripe } from "../../../../deps.ts";
 
 export default async function getPlans(stripeClient) {
   const prices = await stripeClient.prices.list({
