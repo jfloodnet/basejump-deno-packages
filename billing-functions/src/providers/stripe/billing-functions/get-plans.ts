@@ -7,7 +7,7 @@ export default async function getPlans(stripeClient) {
       active: true,
     }),
     stripeClient.coupons.list({
-      expand: ["data.applies_to"]
+      expand: ["data.coupon.applies_to"]
     })
   ]);
 
