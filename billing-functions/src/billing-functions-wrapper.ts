@@ -40,7 +40,7 @@ type GET_NEW_SUBSCRIPTION_URL_ARGS = {
   cancelUrl: string;
   billingEmail: string;
   customerId?: string;
-  promotionCode?: string;
+  promotionId?: string;
   clientReferenceId?: string;
 };
 
@@ -159,7 +159,7 @@ export function billingFunctionsWrapper(
                 cancelUrl: body.args.cancel_url,
                 billingEmail: roleInfo.billing_email,
                 customerId: roleInfo.billing_customer_id,
-                promotionCode: body.args.promotion_code,
+                promotionId: body.args.promotion_id,
                 clientReferenceId: body.args.client_reference_id,
               });
               return new Response(

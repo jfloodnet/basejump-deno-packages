@@ -56,7 +56,7 @@ export function stripeFunctionHandler({
                                         planId,
                                         billingEmail,
                                         customerId,
-                                        promotionCode,
+                                        promotionId,
                                         clientReferenceId,
                                     }) {
 
@@ -97,7 +97,7 @@ export function stripeFunctionHandler({
                     basejump_account_id: accountId,
                 },
                 ...(clientReferenceId && { client_reference_id: clientReferenceId }),
-                ...(promotionCode && { discounts: [{ promotion_code: promotionCode }] }),
+                ...(promotionId && { discounts: [{ promotion_code: promotionId }] }),
             });
             
             return {
