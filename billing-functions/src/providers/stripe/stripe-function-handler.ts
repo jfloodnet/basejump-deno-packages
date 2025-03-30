@@ -95,7 +95,7 @@ export function stripeFunctionHandler({
                 metadata: {
                     basejump_account_id: accountId,
                 },
-                ...(promotionCode && { discounts: [{ coupon: promotionCode }] }),
+                ...(promotionCode && { discounts: [{ promotion_code: promotionCode }] }),
             });
             
             return {
