@@ -56,6 +56,7 @@ export function stripeFunctionHandler({
                                         planId,
                                         billingEmail,
                                         customerId,
+                                        promotionCode,
                                     }) {
 
             const customer = await findOrCreateCustomer(stripeClient, {
@@ -94,6 +95,7 @@ export function stripeFunctionHandler({
                 metadata: {
                     basejump_account_id: accountId,
                 },
+                ...(promotionCode && { discounts: [{ coupon: promotionCode }] }),
             });
             
             return {
