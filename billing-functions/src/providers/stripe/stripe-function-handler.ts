@@ -86,7 +86,7 @@ export function stripeFunctionHandler({
                     },
                     items: [
                         {
-                            price: planId || defaultPlanId
+                            plan: planId || defaultPlanId
                         },
                     ],
                 },
