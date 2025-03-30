@@ -86,10 +86,9 @@ export function stripeFunctionHandler({
                     },
                     items: [
                         {
-                            plan: planId || defaultPlanId
+                            price: planId || defaultPlanId
                         },
                     ],
-                    ...(clientReferenceId && { client_reference_id: clientReferenceId }),
                 },
                 mode: "subscription",
                 success_url: successUrl,
@@ -97,6 +96,7 @@ export function stripeFunctionHandler({
                 metadata: {
                     basejump_account_id: accountId,
                 },
+                ...(clientReferenceId && { client_reference_id: clientReferenceId }),
                 ...(promotionCode && { discounts: [{ promotion_code: promotionCode }] }),
             });
             
