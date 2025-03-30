@@ -57,6 +57,7 @@ export function stripeFunctionHandler({
                                         billingEmail,
                                         customerId,
                                         promotionCode,
+                                        clientReferenceId,
                                     }) {
 
             const customer = await findOrCreateCustomer(stripeClient, {
@@ -88,6 +89,7 @@ export function stripeFunctionHandler({
                             plan: planId || defaultPlanId
                         },
                     ],
+                    ...(clientReferenceId && { client_reference_id: clientReferenceId }),
                 },
                 mode: "subscription",
                 success_url: successUrl,

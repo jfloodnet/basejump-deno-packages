@@ -41,6 +41,7 @@ type GET_NEW_SUBSCRIPTION_URL_ARGS = {
   billingEmail: string;
   customerId?: string;
   promotionCode?: string;
+  clientReferenceId?: string;
 };
 
 type GET_BILLING_STATUS_ARGS = {
@@ -159,6 +160,7 @@ export function billingFunctionsWrapper(
                 billingEmail: roleInfo.billing_email,
                 customerId: roleInfo.billing_customer_id,
                 promotionCode: body.args.promotion_code,
+                clientReferenceId: body.args.client_reference_id,
               });
               return new Response(
                 JSON.stringify({
