@@ -1,6 +1,6 @@
 import type { Stripe } from "../../../../deps.ts";
 
-export default async function getPlans(stripeClient) {
+export default async function getPlans(stripeClient, defaultTrialDays?: number) {
   const [prices, promotionCodes] = await Promise.all([
     stripeClient.prices.list({
       expand: ["data.product"],
@@ -29,6 +29,7 @@ export default async function getPlans(stripeClient) {
       interval:
         price.type === "one_time" ? "one_time" : price.recurring?.interval,
       features: (price.product as Stripe.Product).marketing_features || [],
+      trial_days: defaultTrialDays,
       promotions: productPromotions.map(promo => ({
         id: promo.id,
         code: promo.code,

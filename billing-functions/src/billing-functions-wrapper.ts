@@ -42,7 +42,6 @@ type GET_NEW_SUBSCRIPTION_URL_ARGS = {
   customerId?: string;
   promotionId?: string;
   clientReferenceId?: string;
-  trialDays?: number;
 };
 
 type GET_BILLING_STATUS_ARGS = {
@@ -162,7 +161,6 @@ export function billingFunctionsWrapper(
                 customerId: roleInfo.billing_customer_id,
                 promotionId: body.args.promotion_id,
                 clientReferenceId: body.args.client_reference_id,
-                trialDays: body.args.trial_days,
               });
               return new Response(
                 JSON.stringify({
