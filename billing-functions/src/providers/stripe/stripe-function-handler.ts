@@ -58,6 +58,7 @@ export function stripeFunctionHandler({
                                         customerId,
                                         promotionId,
                                         clientReferenceId,
+                                        trialDays,
                                     }) {
 
             const customer = await findOrCreateCustomer(stripeClient, {
@@ -70,7 +71,8 @@ export function stripeFunctionHandler({
                 throw new Error("Customer not found");
             }
 
-            const trialEnd = defaultTrialDays ? Math.floor(Date.now() / 1000) + (defaultTrialDays * 24 * 60 * 60) : undefined;
+            const trialPeriodDays = trialDays ?? defaultTrialDays;
+            const trialEnd = trialPeriodDays ? Math.floor(Date.now() / 1000) + (trialPeriodDays * 24 * 60 * 60) : undefined;
 
             const session = await stripeClient.checkout.sessions.create({
                 customer: customer.id,
