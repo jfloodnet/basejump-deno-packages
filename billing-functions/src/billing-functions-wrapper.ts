@@ -12,18 +12,23 @@ type GET_PLANS_ARGS = {
 };
 
 type GET_PLANS_RESPONSE = Array<{
-  id: string;
-  name: string;
-  description?: string;
-  amount: number;
+  product_name: string;
+  product_description?: string;
   currency: string;
+  price: number;
+  id: string;
   interval: "month" | "year" | "one_time";
-  interval_count: 1;
-  trial_period_days?: 30;
-  active?: boolean;
-  metadata?: {
-    [key: string]: string;
-  };
+  features: string[];
+  trial_days?: number;
+  promotions: Array<{
+    id: string;
+    code: string;
+    name?: string;
+    percent_off?: number;
+    amount_off?: number;
+    duration?: string;
+    duration_in_months?: number;
+  }>;
 }>;
 
 type GET_BILLING_PORTAL_URL_ARGS = {
