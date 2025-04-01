@@ -19,7 +19,7 @@ type GET_PLANS_RESPONSE = Array<{
   id: string;
   interval: "month" | "year" | "one_time";
   features: string[];
-  trial_days?: number;
+  trial_period_days?: number;
   promotions: Array<{
     id: string;
     code: string;

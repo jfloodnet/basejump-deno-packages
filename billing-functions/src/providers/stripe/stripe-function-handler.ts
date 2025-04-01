@@ -70,12 +70,10 @@ export function stripeFunctionHandler({
                 throw new Error("Customer not found");
             }
 
-            const trialEnd = defaultTrialDays ? Math.floor(Date.now() / 1000) + (defaultTrialDays * 24 * 60 * 60) : undefined;
-
             const session = await stripeClient.checkout.sessions.create({
                 customer: customer.id,
                 subscription_data: {
-                    trial_end: trialEnd,
+                    trial_period_days: defaultTrialDays,
                     trial_settings: {
                         end_behavior: {
                             missing_payment_method: 'create_invoice' // subscription will go past_due if no payment method is added in time

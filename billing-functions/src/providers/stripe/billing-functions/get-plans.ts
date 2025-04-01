@@ -29,7 +29,7 @@ export default async function getPlans(stripeClient, defaultTrialDays?: number) 
       interval:
         price.type === "one_time" ? "one_time" : price.recurring?.interval,
       features: (price.product as Stripe.Product).marketing_features || [],
-      trial_days: defaultTrialDays,
+      trial_period_days: defaultTrialDays,
       promotions: productPromotions.map(promo => ({
         id: promo.id,
         code: promo.code,
