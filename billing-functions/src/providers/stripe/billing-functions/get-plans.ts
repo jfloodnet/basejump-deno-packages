@@ -15,7 +15,9 @@ export default async function getPlans(stripeClient, defaultTrialDays?: number) 
   console.log("Stripe prices response:", JSON.stringify(prices, null, 2));
   console.log("Stripe promotion codes response:", JSON.stringify(promotionCodes, null, 2));
 
-  return prices?.data?.map((price: Stripe.Price) => {
+  return prices?.data?.filter(
+    p => p.product?.metadata?.hidden !== "true"
+  ).map((price: Stripe.Price) => {
     const productPromotions = promotionCodes.data.filter(promo => 
       promo.coupon.applies_to?.products?.includes(price.product.id)
     );
