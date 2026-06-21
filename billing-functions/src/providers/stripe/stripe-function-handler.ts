@@ -2,6 +2,9 @@ import {BILLING_FUNCTION_WRAPPER_HANDLERS} from "../../billing-functions-wrapper
 import getPlans from "./billing-functions/get-plans.ts";
 import {findOrCreateCustomer} from "./billing-functions/find-or-create-customer.ts";
 import {findOrCreateSubscription} from "./billing-functions/find-or-create-subscription.ts";
+import {getSubscriptionSummary} from "./billing-functions/get-subscription-summary.ts";
+import {applyRetentionOffer} from "./billing-functions/apply-retention-offer.ts";
+import {cancelSubscription} from "./billing-functions/cancel-subscription.ts";
 import {Stripe} from "../../../deps.ts";
 
 type Props = {
@@ -15,10 +18,34 @@ export function stripeFunctionHandler({
                                           defaultTrialDays,
                                           defaultPlanId
                                       }: Props): BILLING_FUNCTION_WRAPPER_HANDLERS {
+    // Retention coupons for the offboarding flow (Step 2). The server picks the
+    // coupon by trial status; the client never sends a coupon id.
+    const trialRetentionCouponId = Deno.env.get("STRIPE_TRIAL_RETENTION_COUPON_ID");
+    const retentionDiscountCouponId = Deno.env.get("STRIPE_RETENTION_DISCOUNT_COUPON_ID");
+
     return {
         provider: "stripe",
         async getPlans() {
             return getPlans(stripeClient, defaultTrialDays);
+        },
+
+        async getSubscriptionSummary({subscriptionId}) {
+            return getSubscriptionSummary(stripeClient, {
+                subscriptionId,
+                discountCouponId: retentionDiscountCouponId,
+            });
+        },
+
+        async applyRetentionOffer({subscriptionId}) {
+            return applyRetentionOffer(stripeClient, {
+                subscriptionId,
+                trialCouponId: trialRetentionCouponId,
+                discountCouponId: retentionDiscountCouponId,
+            });
+        },
+
+        async cancelSubscription({subscriptionId, reason, note}) {
+            return cancelSubscription(stripeClient, {subscriptionId, reason, note});
         },
 
         async getBillingStatus({

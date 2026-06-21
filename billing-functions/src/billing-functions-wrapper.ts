@@ -6,6 +6,9 @@ import { corsHeaders } from "../lib/cors-headers.ts";
 import { BASEJUMP_BILLING_DATA_UPSERT } from "../lib/upsert-data.ts";
 import validateUrl from "../lib/validate-url.ts";
 import errorResponse from "../lib/error-response.ts";
+import { SUBSCRIPTION_SUMMARY } from "./providers/stripe/billing-functions/get-subscription-summary.ts";
+import { RETENTION_OFFER_RESULT } from "./providers/stripe/billing-functions/apply-retention-offer.ts";
+import { CANCELLATION_RESULT } from "./providers/stripe/billing-functions/cancel-subscription.ts";
 
 type GET_PLANS_ARGS = {
   account_id?: string;
@@ -62,6 +65,21 @@ type GENERIC_URL_RESPONSE = {
   url: string;
 };
 
+// Offboarding / retention flow argument shapes.
+type SUBSCRIPTION_SUMMARY_ARGS = {
+  subscriptionId: string;
+};
+
+type APPLY_RETENTION_OFFER_ARGS = {
+  subscriptionId: string;
+};
+
+type CANCEL_SUBSCRIPTION_ARGS = {
+  subscriptionId: string;
+  reason?: string;
+  note?: string;
+};
+
 export type GET_BILLING_STATUS_RESPONSE = {
   subscription_id: string;
   subscription_active: boolean;
@@ -90,7 +108,53 @@ export type BILLING_FUNCTION_WRAPPER_HANDLERS = {
   getBillingStatus: (
     args: GET_BILLING_STATUS_ARGS,
   ) => Promise<BASEJUMP_BILLING_DATA_UPSERT>;
+  getSubscriptionSummary: (
+    args: SUBSCRIPTION_SUMMARY_ARGS,
+  ) => Promise<SUBSCRIPTION_SUMMARY>;
+  applyRetentionOffer: (
+    args: APPLY_RETENTION_OFFER_ARGS,
+  ) => Promise<RETENTION_OFFER_RESULT>;
+  cancelSubscription: (
+    args: CANCEL_SUBSCRIPTION_ARGS,
+  ) => Promise<CANCELLATION_RESULT>;
 };
+
+// Best-effort audit write for the offboarding flow. Uses the service-role
+// client (bypasses RLS). `public.cancellations` is not in the basejump-typed
+// Database, so the insert goes through an untyped client. Never throws — a
+// failed audit write must not fail the Stripe action that already succeeded.
+async function recordCancellation(
+  accountId: string,
+  row: {
+    reason?: string;
+    features?: string[];
+    note?: string;
+    offer_variant?: string;
+    offer_shown: boolean;
+    offer_accepted: boolean;
+    outcome: "retained" | "cancelled";
+  },
+): Promise<void> {
+  try {
+    const supabase = createSupabaseServiceClient();
+    // deno-lint-ignore no-explicit-any
+    const { error } = await (supabase as any).from("cancellations").insert({
+      account_id: accountId,
+      reason: row.reason ?? null,
+      features: row.features ?? [],
+      note: row.note ?? null,
+      offer_variant: row.offer_variant ?? null,
+      offer_shown: row.offer_shown,
+      offer_accepted: row.offer_accepted,
+      outcome: row.outcome,
+    });
+    if (error) {
+      console.log("Failed to record cancellation:", error);
+    }
+  } catch (e) {
+    console.log("recordCancellation error:", e);
+  }
+}
 
 export function billingFunctionsWrapper(
   handlers: BILLING_FUNCTION_WRAPPER_HANDLERS,
@@ -207,6 +271,78 @@ export function billingFunctionsWrapper(
                   },
                 },
               );
+            },
+          });
+
+        // ---- Offboarding / retention flow -----------------------------------
+        case "get_subscription_summary":
+          return await requireAuthorizedBillingUser(req, {
+            accountId: body.args.account_id,
+            authorizedRoles: ["owner"],
+            async onBillableAndAuthorized(roleInfo) {
+              const summary = await handlers.getSubscriptionSummary({
+                subscriptionId: roleInfo.billing_subscription_id,
+              });
+              return new Response(JSON.stringify(summary), {
+                headers: {
+                  ...corsHeaders,
+                  "Content-Type": "application/json",
+                },
+              });
+            },
+          });
+
+        case "apply_retention_offer":
+          return await requireAuthorizedBillingUser(req, {
+            accountId: body.args.account_id,
+            authorizedRoles: ["owner"],
+            async onBillableAndAuthorized(roleInfo) {
+              const result = await handlers.applyRetentionOffer({
+                subscriptionId: roleInfo.billing_subscription_id,
+              });
+              await recordCancellation(roleInfo.account_id, {
+                reason: body.args.reason,
+                features: body.args.features,
+                note: body.args.note,
+                offer_variant: result.offer_variant,
+                offer_shown: true,
+                offer_accepted: result.applied,
+                outcome: "retained",
+              });
+              return new Response(JSON.stringify(result), {
+                headers: {
+                  ...corsHeaders,
+                  "Content-Type": "application/json",
+                },
+              });
+            },
+          });
+
+        case "cancel_subscription":
+          return await requireAuthorizedBillingUser(req, {
+            accountId: body.args.account_id,
+            authorizedRoles: ["owner"],
+            async onBillableAndAuthorized(roleInfo) {
+              const result = await handlers.cancelSubscription({
+                subscriptionId: roleInfo.billing_subscription_id,
+                reason: body.args.reason,
+                note: body.args.note,
+              });
+              await recordCancellation(roleInfo.account_id, {
+                reason: body.args.reason,
+                features: body.args.features,
+                note: body.args.note,
+                offer_variant: body.args.offer_variant,
+                offer_shown: !!body.args.offer_shown,
+                offer_accepted: false,
+                outcome: "cancelled",
+              });
+              return new Response(JSON.stringify(result), {
+                headers: {
+                  ...corsHeaders,
+                  "Content-Type": "application/json",
+                },
+              });
             },
           });
 
